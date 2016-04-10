@@ -6,7 +6,8 @@ using System.Collections.Generic;
 
 public class BattleManager : MonoBehaviour {
 
-	private float unitWidth = 0.6f;
+	private const float unitWidth = 42;
+	private const float containerScale = 70;
 	private static readonly float sqrt3 = Mathf.Sqrt (3);
 
 	private Battle battle;
@@ -103,7 +104,9 @@ public class BattleManager : MonoBehaviour {
 				go.transform.SetParent(transform,false);
 				
 				go.transform.localPosition = new Vector3(m * unitWidth * sqrt3 * 2 + ((i % 2 == 1) ? unitWidth * Mathf.Sqrt(3) : 0),-i * unitWidth * 3,0);
-				
+
+				go.transform.localScale = new Vector3(containerScale,containerScale,containerScale);
+
 				MapUnit unit = go.GetComponent<MapUnit>();
 
 				mapUnitList.Add(unit);
@@ -145,7 +148,12 @@ public class BattleManager : MonoBehaviour {
 		
 		transform.localPosition = new Vector3 (-0.5f * (battle.mapData.mapWidth * unitWidth * sqrt3 * 2) + unitWidth * sqrt3, 0.5f * (battle.mapData.mapHeight * unitWidth * 3 + unitWidth) - unitWidth * 2, 0);
 	}
-	
+
+	public void MapUnitClick(MapUnit _mapUnit){
+
+		Debug.Log (_mapUnit.index);
+	}
+
 	// Update is called once per frame
 	void Update () {
 	

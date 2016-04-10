@@ -37,7 +37,7 @@ public class MapUnit : MonoBehaviour {
 
 	public void OnMouseDown(){
 
-//		Debug.Log (index);
+		Debug.Log (index);
 
 		SendMessageUpwards ("MapUnitClick", this, SendMessageOptions.DontRequireReceiver);
 	}
