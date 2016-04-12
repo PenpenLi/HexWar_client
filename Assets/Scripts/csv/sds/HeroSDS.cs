@@ -7,11 +7,11 @@
     public int cost;
     public int heroType;
 
-    private HeroTypeSDS heroTypeSDS;
+	public HeroTypeClientSDS heroTypeSDS;
 
     public override void Fix()
     {
-        heroTypeSDS = StaticData.GetData<HeroTypeSDS>(heroType);
+        heroTypeSDS = StaticData.GetData<HeroTypeClientSDS>(heroType);
     }
 
     public int GetHp()

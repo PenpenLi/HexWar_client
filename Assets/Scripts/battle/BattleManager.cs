@@ -3,16 +3,40 @@ using System.Collections;
 using HexWar;
 using System.IO;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class BattleManager : MonoBehaviour {
 
-	private const float unitWidth = 42;
-	private const float containerScale = 70;
+	private const float mapUnitWidth = 30;
+	private const float mapUnitScale = 50;
+	private const float heroScale = 0.5f;
+	private const float mapContainerYFix = 60;
 	private static readonly float sqrt3 = Mathf.Sqrt (3);
+
+	[SerializeField]
+	private RectTransform cardContainer;
+
+	[SerializeField]
+	private RectTransform mapContainer;
+
+	[SerializeField]
+	private Text moneyTf;
 
 	private Battle battle;
 
-	private List<MapUnit> mapUnitList = new List<MapUnit> ();
+	private Dictionary<int,MapUnit> mapUnitDic = new Dictionary<int, MapUnit> ();
+
+	private Dictionary<int,HeroCard> cardDic = new Dictionary<int, HeroCard>();
+
+	private Dictionary<int,HeroCard> heroDic = new Dictionary<int, HeroCard>();
+
+	private HeroCard nowChooseCard;
+
+	private MapUnit mouseDownMapUnit;
+
+	private MapUnit mouseEnterMapUnit;
+
+	private Dictionary<int,int> summonDic = new Dictionary<int, int>();
 
 	private bool isMine;
 
@@ -27,7 +51,7 @@ public class BattleManager : MonoBehaviour {
 		
 		Map.Init();
 		
-		StaticData.Load<HeroTypeSDS>("heroType");
+		StaticData.Load<HeroTypeClientSDS>("heroType");
 		
 		StaticData.Load<HeroSDS>("hero");
 		
@@ -67,16 +91,53 @@ public class BattleManager : MonoBehaviour {
 		ClearAll ();
 
 		CreateMapPanel ();
+
+		CreateCards ();
+
+		CreateMoneyTf ();
 	}
 
 	private void ClearAll(){
 
-		for (int i = 0; i < mapUnitList.Count; i++) {
+		ClearMapUnits ();
 
-			GameObject.Destroy(mapUnitList[i].gameObject);
+		ClearCards ();
+	}
+
+	private void ClearMapUnits(){
+
+		Dictionary<int,MapUnit>.ValueCollection.Enumerator enumerator = mapUnitDic.Values.GetEnumerator ();
+		
+		while (enumerator.MoveNext()) {
+			
+			GameObject.Destroy(enumerator.Current.gameObject);
 		}
+		
+		mapUnitDic.Clear ();
+	}
 
-		mapUnitList.Clear ();
+	private void ClearCards(){
+
+		Dictionary<int,HeroCard>.ValueCollection.Enumerator enumerator2 = cardDic.Values.GetEnumerator ();
+		
+		while (enumerator2.MoveNext()) {
+			
+			GameObject.Destroy(enumerator2.Current.gameObject);
+		}
+		
+		cardDic.Clear ();
+	}
+
+	private void ClearHeros(){
+
+		Dictionary<int,HeroCard>.ValueCollection.Enumerator enumerator2 = heroDic.Values.GetEnumerator ();
+		
+		while (enumerator2.MoveNext()) {
+			
+			GameObject.Destroy(enumerator2.Current.gameObject);
+		}
+		
+		heroDic.Clear ();
 	}
 
 	private void CreateMapPanel(){
@@ -101,16 +162,16 @@ public class BattleManager : MonoBehaviour {
 				
 				GameObject go = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("MapUnit"));
 				
-				go.transform.SetParent(transform,false);
+				go.transform.SetParent(mapContainer,false);
 				
-				go.transform.localPosition = new Vector3(m * unitWidth * sqrt3 * 2 + ((i % 2 == 1) ? unitWidth * Mathf.Sqrt(3) : 0),-i * unitWidth * 3,0);
+				go.transform.localPosition = new Vector3(m * mapUnitWidth * sqrt3 * 2 + ((i % 2 == 1) ? mapUnitWidth * Mathf.Sqrt(3) : 0),-i * mapUnitWidth * 3,0);
 
-				go.transform.localScale = new Vector3(containerScale,containerScale,containerScale);
+				go.transform.localScale = new Vector3(mapUnitScale,mapUnitScale,mapUnitScale);
 
 				MapUnit unit = go.GetComponent<MapUnit>();
 
-				mapUnitList.Add(unit);
-				
+				mapUnitDic.Add(index,unit);
+
 				unit.index = index;
 				
 				unit.SetOffVisible(false);
@@ -146,12 +207,200 @@ public class BattleManager : MonoBehaviour {
 			}
 		}
 		
-		transform.localPosition = new Vector3 (-0.5f * (battle.mapData.mapWidth * unitWidth * sqrt3 * 2) + unitWidth * sqrt3, 0.5f * (battle.mapData.mapHeight * unitWidth * 3 + unitWidth) - unitWidth * 2, 0);
+		mapContainer.localPosition = new Vector3 (-0.5f * (battle.mapData.mapWidth * mapUnitWidth * sqrt3 * 2) + mapUnitWidth * sqrt3,mapContainerYFix + 0.5f * (battle.mapData.mapHeight * mapUnitWidth * 3 + mapUnitWidth) - mapUnitWidth * 2, 0);
 	}
 
-	public void MapUnitClick(MapUnit _mapUnit){
+	private void CreateCards(){
 
-		Debug.Log (_mapUnit.index);
+		cardDic.Clear ();
+
+		Dictionary<int,int> tmpCardDic = isMine ? battle.mHandCards : battle.oHandCards;
+
+		Dictionary<int,int>.Enumerator enumerator = tmpCardDic.GetEnumerator ();
+
+		int index = 0;
+
+		while (enumerator.MoveNext()) {
+
+			if(summonDic.ContainsKey(enumerator.Current.Key)){
+
+				continue;
+			}
+
+			GameObject go = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Hero"));
+
+			HeroCard hero = go.GetComponent<HeroCard>();
+
+			hero.SetFrameVisible(false);
+
+			hero.Init(enumerator.Current.Key,enumerator.Current.Value);
+
+			cardDic.Add(enumerator.Current.Key,hero);
+
+			go.transform.SetParent(cardContainer,false);
+
+			float cardWidth = (go.transform as RectTransform).sizeDelta.x;
+			float cardHeight = (go.transform as RectTransform).sizeDelta.y;
+
+			(go.transform as RectTransform).anchoredPosition = new Vector2(-0.5f * cardContainer.rect.width + cardWidth * 0.5f + index * cardWidth,-0.5f * cardContainer.rect.height + cardHeight * 0.5f);
+
+			index++;
+		}
+	}
+
+	private void CreateHeros(){
+
+		Dictionary<int,Hero>.ValueCollection.Enumerator enumerator = battle.heroDic.Values.GetEnumerator ();
+
+		while (enumerator.MoveNext()) {
+
+			AddHeroToMap(enumerator.Current);
+		}
+
+		Dictionary<int,int>.Enumerator enumerator2 = summonDic.GetEnumerator ();
+
+		while (enumerator2.MoveNext()) {
+
+			AddCardToMap(enumerator2.Current.Key,enumerator2.Current.Value);
+		}
+	}
+
+	private void CreateMoneyTf(){
+
+		moneyTf.text = GetMoney().ToString ();
+	}
+
+	public void MapUnitDown(MapUnit _mapUnit){
+
+		mouseDownMapUnit = _mapUnit;
+
+		Debug.Log ("mapDown:" + _mapUnit.index);
+	}
+
+	public void MapUnitEnter(MapUnit _mapUnit){
+
+		mouseEnterMapUnit = _mapUnit;
+	}
+
+	public void MapUnitExit(MapUnit _mapUnit){
+
+		mouseEnterMapUnit = null;
+	}
+
+	public void MapUnitUp(MapUnit _mapUnit){
+
+		if (mouseDownMapUnit == mouseEnterMapUnit) {
+
+			if (nowChooseCard != null) {
+				
+				if (battle.mapDic [_mapUnit.index] == isMine && !battle.mapBelongDic.ContainsKey (_mapUnit.index) && nowChooseCard.sds.cost <= GetMoney() && !summonDic.ContainsValue(_mapUnit.index) && !battle.heroMapDic.ContainsKey(_mapUnit.index)) {
+
+					SummonHero(nowChooseCard.uid,_mapUnit.index);
+				}
+			}
+		}
+
+		ClearNowChooseCard ();
+		
+		mouseDownMapUnit = mouseEnterMapUnit = null;
+	}
+
+	public void HeroClick(HeroCard _hero){
+
+		if (nowChooseCard != _hero) {
+
+			ClearNowChooseCard();
+
+			nowChooseCard = _hero;
+
+			nowChooseCard.SetFrameVisible(true);
+		}
+	}
+
+	private void ClearNowChooseCard(){
+
+		if (nowChooseCard != null) {
+			
+			nowChooseCard.SetFrameVisible(false);
+
+			nowChooseCard = null;
+		}
+	}
+
+	private void SummonHero(int _uid,int _pos){
+		
+		summonDic.Add(_uid,_pos);
+
+		CreateMoneyTf ();
+
+		ClearCards ();
+
+		CreateCards ();
+
+		ClearHeros ();
+
+		CreateHeros ();
+	}
+
+	private void AddHeroToMap(Hero _hero){
+
+		GameObject go = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Hero"));
+		
+		HeroCard hero = go.GetComponent<HeroCard>();
+		
+		hero.Init (_hero.uid, _hero.id, _hero.nowHp);
+		
+		AddHeroToMapReal (hero, _hero.pos);
+	}
+
+	private void AddCardToMap(int _uid,int _pos){
+
+		int cardID = (isMine ? battle.mHandCards : battle.oHandCards) [_uid];
+
+		GameObject go = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Hero"));
+		
+		HeroCard hero = go.GetComponent<HeroCard>();
+		
+		hero.Init(_uid,cardID);
+
+		AddHeroToMapReal (hero, _pos);
+	}
+
+	private void AddHeroToMapReal(HeroCard _heroCard,int _pos){
+
+		MapUnit mapUnit = mapUnitDic [_pos];
+		
+		_heroCard.SetFrameVisible(false);
+		
+		_heroCard.transform.SetParent (mapUnit.transform, false);
+		
+		_heroCard.transform.localPosition = Vector3.zero;
+		
+		float scale = 1 / mapUnitScale * heroScale;
+		
+		_heroCard.transform.localScale = new Vector3 (scale, scale, scale);
+		
+		_heroCard.SetMouseEnable (false);
+	}
+
+	private int GetMoney(){
+
+		int money = isMine ? battle.mMoney : battle.oMoney;
+
+		Dictionary<int,int> cards = isMine ? battle.mHandCards : battle.oHandCards;
+
+		Dictionary<int,int>.KeyCollection.Enumerator enumerator = summonDic.Keys.GetEnumerator ();
+
+		while (enumerator.MoveNext()) {
+
+			int cardID = cards[enumerator.Current];
+
+			HeroSDS heroSDS = StaticData.GetData<HeroSDS>(cardID);
+
+			money -= heroSDS.cost;
+		}
+
+		return money;
 	}
 
 	// Update is called once per frame

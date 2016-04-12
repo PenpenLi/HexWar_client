@@ -37,9 +37,22 @@ public class MapUnit : MonoBehaviour {
 
 	public void OnMouseDown(){
 
-		Debug.Log (index);
+		SendMessageUpwards ("MapUnitDown", this, SendMessageOptions.DontRequireReceiver);
+	}
 
-		SendMessageUpwards ("MapUnitClick", this, SendMessageOptions.DontRequireReceiver);
+	public void OnMouseUp(){
+		
+		SendMessageUpwards ("MapUnitUp", this, SendMessageOptions.DontRequireReceiver);
+	}
+
+	public void OnMouseEnter(){
+		
+		SendMessageUpwards ("MapUnitEnter", this, SendMessageOptions.DontRequireReceiver);
+	}
+	
+	public void OnMouseExit(){
+		
+		SendMessageUpwards ("MapUnitExit", this, SendMessageOptions.DontRequireReceiver);
 	}
 	
 	// Update is called once per frame
