@@ -155,7 +155,7 @@ public class MapCreator : MonoBehaviour {
 		}
 	}
 
-	public void MapUnitDown(MapUnit _unit){
+	public void MapUnitUpAsButton(MapUnit _unit){
 
 		if (mapData.dic.ContainsKey (_unit.index)) {
 

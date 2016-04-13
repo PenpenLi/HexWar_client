@@ -54,6 +54,11 @@ public class MapUnit : MonoBehaviour {
 		
 		SendMessageUpwards ("MapUnitExit", this, SendMessageOptions.DontRequireReceiver);
 	}
+
+	public void OnMouseUpAsButton(){
+
+		SendMessageUpwards ("MapUnitUpAsButton", this, SendMessageOptions.DontRequireReceiver);
+	}
 	
 	// Update is called once per frame
 	void Update () {

@@ -32,9 +32,11 @@ public class BattleManager : MonoBehaviour {
 
 	private HeroCard nowChooseCard;
 
-	private MapUnit mouseDownMapUnit;
+	private HeroCard nowChooseHero;
 
-	private MapUnit mouseEnterMapUnit;
+//	private MapUnit mouseDownMapUnit;
+//
+//	private MapUnit mouseEnterMapUnit;
 
 	private Dictionary<int,int> summonDic = new Dictionary<int, int>();
 
@@ -77,11 +79,20 @@ public class BattleManager : MonoBehaviour {
 
 			using(BinaryReader br = new BinaryReader(ms)){
 
-				isMine = br.ReadBoolean();
+				byte tag = br.ReadByte();
 
-				battle.ClientRefreshData(br,isMine);
+				switch(tag){
 
-				RefreshData();
+					case PackageTag.S2C_REFRESH:
+
+						isMine = br.ReadBoolean();
+
+						battle.ClientRefreshData(br,isMine);
+
+						RefreshData();
+
+						break;
+				}
 			}
 		}
 	}
@@ -272,37 +283,119 @@ public class BattleManager : MonoBehaviour {
 
 	public void MapUnitDown(MapUnit _mapUnit){
 
-		mouseDownMapUnit = _mapUnit;
-
-		Debug.Log ("mapDown:" + _mapUnit.index);
+//		mouseDownMapUnit = _mapUnit;
+//
+//		Debug.Log ("mapDown:" + _mapUnit.index);
 	}
 
 	public void MapUnitEnter(MapUnit _mapUnit){
 
-		mouseEnterMapUnit = _mapUnit;
+//		mouseEnterMapUnit = _mapUnit;
 	}
 
 	public void MapUnitExit(MapUnit _mapUnit){
 
-		mouseEnterMapUnit = null;
+//		mouseEnterMapUnit = null;
 	}
 
 	public void MapUnitUp(MapUnit _mapUnit){
 
-		if (mouseDownMapUnit == mouseEnterMapUnit) {
+//		if (mouseDownMapUnit == mouseEnterMapUnit) {
+//
+//			if (nowChooseCard != null) {
+//				
+//				if (battle.mapDic [_mapUnit.index] == isMine && !battle.mapBelongDic.ContainsKey (_mapUnit.index) && nowChooseCard.sds.cost <= GetMoney() && !summonDic.ContainsValue(_mapUnit.index) && !battle.heroMapDic.ContainsKey(_mapUnit.index)) {
+//
+//					SummonHero(nowChooseCard.uid,_mapUnit.index);
+//				}
+//			}
+//		}
+//
+//		ClearNowChooseCard ();
+//		
+//		mouseDownMapUnit = mouseEnterMapUnit = null;
+	}
 
-			if (nowChooseCard != null) {
-				
-				if (battle.mapDic [_mapUnit.index] == isMine && !battle.mapBelongDic.ContainsKey (_mapUnit.index) && nowChooseCard.sds.cost <= GetMoney() && !summonDic.ContainsValue(_mapUnit.index) && !battle.heroMapDic.ContainsKey(_mapUnit.index)) {
+	public void MapUnitUpAsButton(MapUnit _mapUnit){
 
-					SummonHero(nowChooseCard.uid,_mapUnit.index);
+		if (summonDic.ContainsValue (_mapUnit.index)) {
+
+			HeroCard summonHero = heroDic [_mapUnit.index];
+
+			if (nowChooseHero == null) {
+
+				nowChooseHero = summonHero;
+
+				nowChooseHero.SetFrameVisible (true);
+
+			} else {
+
+				if (nowChooseHero == summonHero) {
+
+					UnsummonHero (summonHero.uid);
+
+				} else {
+
+					nowChooseHero.SetFrameVisible (false);
+
+					nowChooseHero = summonHero;
+
+					nowChooseHero.SetFrameVisible (true);
 				}
+			}
+			
+		} else if (battle.heroMapDic.ContainsKey (_mapUnit.index)) {
+
+			if(battle.mapDic[_mapUnit.index] == isMine){
+			
+				HeroCard nowHero = heroDic [_mapUnit.index];
+				
+				if (nowChooseHero == null) {
+					
+					nowChooseHero = nowHero;
+					
+					nowChooseHero.SetFrameVisible (true);
+					
+				} else {
+					
+					if (nowChooseHero != nowHero) {
+
+						nowChooseHero.SetFrameVisible (false);
+						
+						nowChooseHero = nowHero;
+						
+						nowChooseHero.SetFrameVisible (true);
+					}
+				}
+
+			}else{
+
+				if (nowChooseHero != null) {
+					
+					nowChooseHero.SetFrameVisible (false);
+					
+					nowChooseHero = null;
+				}
+			}
+
+		} else if(nowChooseCard != null) {
+
+			if (battle.mapDic [_mapUnit.index] == isMine && !battle.mapBelongDic.ContainsKey (_mapUnit.index) && nowChooseCard.sds.cost <= GetMoney ()) {
+				
+				SummonHero (nowChooseCard.uid, _mapUnit.index);
+			}
+
+		}else {
+
+			if (nowChooseHero != null) {
+				
+				nowChooseHero.SetFrameVisible (false);
+
+				nowChooseHero = null;
 			}
 		}
 
 		ClearNowChooseCard ();
-		
-		mouseDownMapUnit = mouseEnterMapUnit = null;
 	}
 
 	public void HeroClick(HeroCard _hero){
@@ -342,6 +435,21 @@ public class BattleManager : MonoBehaviour {
 		CreateHeros ();
 	}
 
+	private void UnsummonHero(int _uid){
+
+		summonDic.Remove(_uid);
+		
+		CreateMoneyTf ();
+		
+		ClearCards ();
+		
+		CreateCards ();
+		
+		ClearHeros ();
+		
+		CreateHeros ();
+	}
+
 	private void AddHeroToMap(Hero _hero){
 
 		GameObject go = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Hero"));
@@ -360,6 +468,8 @@ public class BattleManager : MonoBehaviour {
 		GameObject go = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Hero"));
 		
 		HeroCard hero = go.GetComponent<HeroCard>();
+
+		hero.SetAlpha (0.6f);
 		
 		hero.Init(_uid,cardID);
 
@@ -381,6 +491,8 @@ public class BattleManager : MonoBehaviour {
 		_heroCard.transform.localScale = new Vector3 (scale, scale, scale);
 		
 		_heroCard.SetMouseEnable (false);
+
+		heroDic.Add (_pos, _heroCard);
 	}
 
 	private int GetMoney(){
