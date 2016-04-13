@@ -45,8 +45,15 @@ public class BattleManager : MonoBehaviour {
 
 	private bool isMine;
 
+	private void WriteLog(string _str){
+
+		Debug.Log (_str);
+	}
+
 	// Use this for initialization
 	void Start () {
+
+		Log.Init (WriteLog);
 
 		ConfigDictionary.Instance.LoadLocalConfig(Application.streamingAssetsPath + "/local.xml");
 		
@@ -73,7 +80,7 @@ public class BattleManager : MonoBehaviour {
 		
 		battle = new Battle ();
 
-		battle.ClientSetCallBack (SendData, SetIsMine);
+		battle.ClientSetCallBack (SendData, RefreshData);
 		
 		Connection.Instance.Init ("127.0.0.1", 1983, ReceiveData);
 	}
@@ -83,32 +90,28 @@ public class BattleManager : MonoBehaviour {
 		battle.ClientGetPackage (_bytes);
 	}
 
-	private void SetIsMine(bool _isMine){
-
-		isMine = _isMine;
-	}
-
 	private void SendData(MemoryStream _ms){
 
 		Connection.Instance.Send (_ms);
 	}
 
-	private void RefreshData(){
+	private void RefreshData(bool _isMine){
 
-		ClearAll ();
+		isMine = _isMine;
+
+		ClearMapUnits ();
+		
+		ClearCards ();
+
+		ClearHeros ();
 
 		CreateMapPanel ();
 
 		CreateCards ();
 
+		CreateHeros ();
+
 		CreateMoneyTf ();
-	}
-
-	private void ClearAll(){
-
-		ClearMapUnits ();
-
-		ClearCards ();
 	}
 
 	private void ClearMapUnits(){
