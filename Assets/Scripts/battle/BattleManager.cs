@@ -22,6 +22,9 @@ public class BattleManager : MonoBehaviour {
 	[SerializeField]
 	private Text moneyTf;
 
+	[SerializeField]
+	private GameObject actionBt;
+
 	private Battle battle;
 
 	private Dictionary<int,MapUnit> mapUnitDic = new Dictionary<int, MapUnit> ();
@@ -69,32 +72,25 @@ public class BattleManager : MonoBehaviour {
 		Battle.Init(newDic,Map.mapDataDic);
 		
 		battle = new Battle ();
+
+		battle.ClientSetCallBack (SendData, SetIsMine);
 		
 		Connection.Instance.Init ("127.0.0.1", 1983, ReceiveData);
 	}
 	
 	private void ReceiveData(byte[] _bytes){
 
-		using (MemoryStream ms = new MemoryStream(_bytes)) {
+		battle.ClientGetPackage (_bytes);
+	}
 
-			using(BinaryReader br = new BinaryReader(ms)){
+	private void SetIsMine(bool _isMine){
 
-				byte tag = br.ReadByte();
+		isMine = _isMine;
+	}
 
-				switch(tag){
+	private void SendData(MemoryStream _ms){
 
-					case PackageTag.S2C_REFRESH:
-
-						isMine = br.ReadBoolean();
-
-						battle.ClientRefreshData(br,isMine);
-
-						RefreshData();
-
-						break;
-				}
-			}
-		}
+		Connection.Instance.Send (_ms);
 	}
 
 	private void RefreshData(){
@@ -513,6 +509,11 @@ public class BattleManager : MonoBehaviour {
 		}
 
 		return money;
+	}
+
+	public void ActionBtClick(){
+
+
 	}
 
 	// Update is called once per frame
