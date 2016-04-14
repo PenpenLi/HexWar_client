@@ -37,13 +37,23 @@ public class BattleManager : MonoBehaviour {
 
 	private HeroCard nowChooseHero;
 
-//	private MapUnit mouseDownMapUnit;
-//
-//	private MapUnit mouseEnterMapUnit;
-
-	private Dictionary<int,int> summonDic = new Dictionary<int, int>();
-
 	private bool isMine;
+
+	private Dictionary<int,int> summonDic{
+
+		get{
+
+			return isMine ? battle.mSummonAction : battle.oSummonAction;
+		}
+	}
+
+	private Dictionary<int,int> moveDic{
+
+		get{
+			
+			return isMine ? battle.mMoveAction : battle.oMoveAction;
+		}
+	}
 
 	private void WriteLog(string _str){
 
@@ -421,7 +431,7 @@ public class BattleManager : MonoBehaviour {
 
 	private void SummonHero(int _uid,int _pos){
 		
-		summonDic.Add(_uid,_pos);
+		battle.ClientRequestSummon (isMine, _uid, _pos);
 
 		CreateMoneyTf ();
 
@@ -436,7 +446,7 @@ public class BattleManager : MonoBehaviour {
 
 	private void UnsummonHero(int _uid){
 
-		summonDic.Remove(_uid);
+		battle.ClientRequestUnsummon (isMine, _uid);
 		
 		CreateMoneyTf ();
 		
@@ -516,11 +526,19 @@ public class BattleManager : MonoBehaviour {
 
 	public void ActionBtClick(){
 
+		battle.ClientRequestDoAction (isMine);
 
+		summonDic.Clear ();
+
+		moveDic.Clear ();
 	}
 
 	// Update is called once per frame
 	void Update () {
 	
+		if(Input.GetKeyUp(KeyCode.F5)){
+
+			battle.ClientRequestRefreshData();
+		}
 	}
 }
