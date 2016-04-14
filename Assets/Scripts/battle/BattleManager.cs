@@ -194,7 +194,7 @@ public class BattleManager : MonoBehaviour {
 
 				unit.index = index;
 				
-				unit.SetOffVisible(false);
+				unit.SetOffVisible(true);
 
 				if(battle.mapData.dic[index] == isMine){
 
