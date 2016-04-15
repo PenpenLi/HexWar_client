@@ -14,6 +14,9 @@ public class BattleManager : MonoBehaviour {
 	private static readonly float sqrt3 = Mathf.Sqrt (3);
 
 	[SerializeField]
+	private GraphicRaycaster graphicRayCaster;
+
+	[SerializeField]
 	private RectTransform cardContainer;
 
 	[SerializeField]
@@ -42,6 +45,8 @@ public class BattleManager : MonoBehaviour {
 	private HeroCard nowChooseHero;
 
 	private int movingHeroUid = -1;
+
+	private bool movingIsOK = true;
 
 	private bool isMine;
 
@@ -136,6 +141,8 @@ public class BattleManager : MonoBehaviour {
 		CreateMoves ();
 
 		CreateMoneyTf ();
+
+		RefreshTouchable ();
 	}
 
 	private void ClearMapUnits(){
@@ -333,6 +340,8 @@ public class BattleManager : MonoBehaviour {
 
 	private void CreateMoves(){
 
+		movingIsOK = true;
+
 		Dictionary<int,int>.Enumerator enumerator = moveDic.GetEnumerator ();
 
 		while (enumerator.MoveNext()) {
@@ -352,6 +361,72 @@ public class BattleManager : MonoBehaviour {
 			go.transform.eulerAngles = new Vector3(0,0,60 - direction * 60);
 
 			arrowDic.Add(pos, arrow);
+
+			bool result = true;
+
+			List<int> tmpList = new List<int>();
+
+			tmpList.Add(pos);
+
+			int targetPos = battle.mapData.neighbourPosMap[pos][direction];
+
+			while(true){
+
+				if(battle.heroMapDic.ContainsKey(targetPos)){
+					
+					Hero hero = battle.heroMapDic[targetPos];
+
+					if(moveDic.ContainsKey(hero.uid)){
+
+						int index = tmpList.IndexOf(targetPos);
+
+						if(index == -1){
+
+							tmpList.Add(targetPos);
+
+						}else{
+
+							if(index != 0){
+
+								result = false;
+							}
+
+							break;
+						}
+
+						int tmpDirection = moveDic[hero.uid];
+
+						targetPos = battle.mapData.neighbourPosMap[targetPos][tmpDirection];
+
+					}else{
+
+						result = false;
+						
+						break;
+					}
+
+				}else if(summonDic.ContainsValue(targetPos)){
+
+					result = false;
+
+					break;
+
+				}else{
+
+					break;
+				}
+			}
+
+			if(!result){
+
+				movingIsOK = false;
+
+				arrow.SetColor(Color.blue);
+
+			}else{
+
+				arrow.SetColor(Color.yellow);
+			}
 		}
 	}
 
@@ -365,7 +440,7 @@ public class BattleManager : MonoBehaviour {
 
 				Hero hero = battle.heroMapDic[_mapUnit.index];
 
-				if(hero.sds.GetHeroTypeSDS().GetCanMove() && hero.canMove){
+				if(hero.canMove){
 
 					movingHeroUid = hero.uid;
 
@@ -387,6 +462,16 @@ public class BattleManager : MonoBehaviour {
 		if (movingHeroUid != -1) {
 
 			if((battle.mapDic[_mapUnit.index] == isMine && !battle.mapBelongDic.ContainsKey(_mapUnit.index)) || (battle.mapDic[_mapUnit.index] != isMine && battle.mapBelongDic.ContainsKey(_mapUnit.index))){
+
+				if(battle.heroMapDic.ContainsKey(_mapUnit.index)){
+
+					Hero tmpHero = battle.heroMapDic[_mapUnit.index];
+
+					if(!tmpHero.canMove){
+
+						return;
+					}
+				}
 
 				Hero hero = battle.heroDic[movingHeroUid];
 
@@ -667,11 +752,14 @@ public class BattleManager : MonoBehaviour {
 
 	public void ActionBtClick(){
 
+		if (!movingIsOK) {
+
+			return;
+		}
+
 		battle.ClientRequestDoAction (isMine);
 
-		summonDic.Clear ();
-
-		moveDic.Clear ();
+		RefreshTouchable ();
 	}
 
 	// Update is called once per frame
@@ -681,5 +769,14 @@ public class BattleManager : MonoBehaviour {
 
 			battle.ClientRequestRefreshData();
 		}
+	}
+
+	private void RefreshTouchable(){
+
+		bool touchable = !(isMine ? battle.mOver : battle.oOver);
+
+		graphicRayCaster.enabled = touchable;
+		MapUnit.touchable = touchable;
+		actionBt.SetActive (touchable);
 	}
 }
