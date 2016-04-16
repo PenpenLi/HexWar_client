@@ -30,6 +30,9 @@ public class BattleManager : MonoBehaviour {
 	[SerializeField]
 	private GameObject actionBt;
 
+	[SerializeField]
+	private HeroDetail heroDetail;
+
 	private Battle battle;
 
 	private Dictionary<int,MapUnit> mapUnitDic = new Dictionary<int, MapUnit> ();
@@ -42,9 +45,53 @@ public class BattleManager : MonoBehaviour {
 
 	private Dictionary<int,Arrow> arrowDic = new Dictionary<int, Arrow>();
 
-	private HeroCard nowChooseCard;
+	private HeroCard m_nowChooseCard;
 
-	private HeroCard nowChooseHero;
+	private HeroCard nowChooseCard{
+
+		get{
+
+			return m_nowChooseCard;
+		}
+
+		set{
+
+			if(value == null){
+
+				heroDetail.Hide();
+
+			}else{
+
+				heroDetail.Init(value);
+			}
+
+			m_nowChooseCard = value;
+		}
+	}
+
+	private HeroCard m_nowChooseHero;
+
+	private HeroCard nowChooseHero{
+
+		get{
+
+			return m_nowChooseHero;
+		}
+
+		set{
+
+			if(value == null){
+				
+				heroDetail.Hide();
+				
+			}else{
+				
+				heroDetail.Init(value);
+			}
+
+			m_nowChooseHero = value;
+		}
+	}
 
 	private int movingHeroUid = -1;
 
@@ -557,6 +604,8 @@ public class BattleManager : MonoBehaviour {
 
 				if (nowChooseHero == summonHero) {
 
+					nowChooseHero = null;
+
 					UnsummonHero (summonHero.uid);
 
 				} else {
@@ -623,7 +672,7 @@ public class BattleManager : MonoBehaviour {
 	private void ClearNowChooseCard(){
 
 		if (nowChooseCard != null) {
-			
+
 			nowChooseCard.SetFrameVisible(false);
 
 			nowChooseCard = null;
