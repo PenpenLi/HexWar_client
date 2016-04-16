@@ -7,6 +7,8 @@ using UnityEngine.UI;
 
 public class BattleManager : MonoBehaviour {
 
+	private static readonly Color summonColor = new Color (0.2f, 0.8f, 0.8f);
+
 	private const float mapUnitWidth = 30;
 	private const float mapUnitScale = 50;
 	private const float heroScale = 0.5f;
@@ -704,7 +706,7 @@ public class BattleManager : MonoBehaviour {
 
 		summonHeroDic.Add (_pos, hero);
 
-		hero.body.color = Color.blue;
+		hero.body.color = summonColor;
 		
 		hero.Init(_uid,cardID);
 
