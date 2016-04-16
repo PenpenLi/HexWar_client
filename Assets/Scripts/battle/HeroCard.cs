@@ -41,11 +41,13 @@ public class HeroCard : MonoBehaviour,IPointerClickHandler {
 		hp.text = sds.hp.ToString ();
 	}
 
-	public void Init(int _uid,int _id,int _hp){
+	public void Init(int _uid,int _id,int _hp,int _power){
 
 		Init (_uid, _id);
 
 		hp.text = _hp.ToString ();
+
+		power.text = _power.ToString ();
 	}
 
 	public void SetMouseEnable(bool _b){

@@ -691,7 +691,7 @@ public class BattleManager : MonoBehaviour {
 
 		heroDic.Add (_hero.pos, hero);
 		
-		hero.Init (_hero.uid, _hero.id, _hero.nowHp);
+		hero.Init (_hero.uid, _hero.id, _hero.nowHp, _hero.nowPower);
 		
 		AddHeroToMapReal (hero, _hero.pos);
 	}
@@ -756,6 +756,10 @@ public class BattleManager : MonoBehaviour {
 
 			return;
 		}
+
+		ClearNowChooseCard ();
+
+		ClearNowChooseHero ();
 
 		battle.ClientRequestDoAction (isMine);
 
