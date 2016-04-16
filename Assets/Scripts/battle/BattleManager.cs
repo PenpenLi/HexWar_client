@@ -432,7 +432,7 @@ public class BattleManager : MonoBehaviour {
 
 	public void MapUnitDown(MapUnit _mapUnit){
 
-		if (heroDic.ContainsKey (_mapUnit.index)) {
+		if (battle.mapDic[_mapUnit.index] == isMine && heroDic.ContainsKey (_mapUnit.index)) {
 
 			HeroCard heroCard = heroDic[_mapUnit.index];
 
@@ -569,31 +569,24 @@ public class BattleManager : MonoBehaviour {
 			
 		} else if (battle.heroMapDic.ContainsKey (_mapUnit.index)) {
 
-			if(battle.mapDic[_mapUnit.index] == isMine){
+			HeroCard nowHero = heroDic [_mapUnit.index];
 			
-				HeroCard nowHero = heroDic [_mapUnit.index];
+			if (nowChooseHero == null) {
 				
-				if (nowChooseHero == null) {
+				nowChooseHero = nowHero;
+				
+				nowChooseHero.SetFrameVisible (true);
+				
+			} else {
+				
+				if (nowChooseHero != nowHero) {
+
+					ClearNowChooseHero();
 					
 					nowChooseHero = nowHero;
 					
 					nowChooseHero.SetFrameVisible (true);
-					
-				} else {
-					
-					if (nowChooseHero != nowHero) {
-
-						ClearNowChooseHero();
-						
-						nowChooseHero = nowHero;
-						
-						nowChooseHero.SetFrameVisible (true);
-					}
 				}
-
-			}else{
-
-				ClearNowChooseHero();
 			}
 
 		} else if(nowChooseCard != null) {
@@ -689,6 +682,11 @@ public class BattleManager : MonoBehaviour {
 		
 		HeroCard hero = go.GetComponent<HeroCard>();
 
+		if (!_hero.canMove) {
+
+			hero.body.color = Color.gray;
+		}
+
 		heroDic.Add (_hero.pos, hero);
 		
 		hero.Init (_hero.uid, _hero.id, _hero.nowHp);
@@ -706,7 +704,7 @@ public class BattleManager : MonoBehaviour {
 
 		summonHeroDic.Add (_pos, hero);
 
-		hero.SetAlpha (0.6f);
+		hero.body.color = Color.blue;
 		
 		hero.Init(_uid,cardID);
 

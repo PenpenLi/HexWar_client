@@ -6,13 +6,10 @@ using UnityEngine.EventSystems;
 public class HeroCard : MonoBehaviour,IPointerClickHandler {
 
 	[SerializeField]
-	private CanvasGroup canvasGroup;
-
-	[SerializeField]
 	private Image frame;
 
 	[SerializeField]
-	private Image body;
+	public Image body;
 
 	[SerializeField]
 	private Text heroType;
@@ -61,9 +58,9 @@ public class HeroCard : MonoBehaviour,IPointerClickHandler {
 		frame.gameObject.SetActive (_visible);
 	}
 
-	public void SetAlpha(float _alpha){
+	public void SetFrameColor(Color _color){
 
-		canvasGroup.alpha = _alpha;
+		frame.color = _color;
 	}
 
 	public void OnPointerClick(PointerEventData _data){
