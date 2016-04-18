@@ -23,12 +23,12 @@ public class HeroCard : MonoBehaviour,IPointerClickHandler {
 	[SerializeField]
 	private Text hp;
 
-	public int uid;
+	public int cardUid;
 	public HeroSDS sds;
 
-	public void Init(int _uid,int _id){
+	public void Init(int _cardUid,int _id){
 
-		uid = _uid;
+		cardUid = _cardUid;
 
 		sds = StaticData.GetData<HeroSDS> (_id);
 
@@ -41,10 +41,14 @@ public class HeroCard : MonoBehaviour,IPointerClickHandler {
 		hp.text = sds.hp.ToString ();
 	}
 
-	public void Init(int _uid,int _id,int _hp,int _power){
+	public void Init(int _id,int _hp,int _power){
 
-		Init (_uid, _id);
-
+		sds = StaticData.GetData<HeroSDS> (_id);
+		
+		heroType.text = sds.heroTypeSDS.name;
+		
+		damage.text = sds.damage.ToString ();
+		
 		hp.text = _hp.ToString ();
 
 		power.text = _power.ToString ();
