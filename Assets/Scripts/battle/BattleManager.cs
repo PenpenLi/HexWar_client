@@ -97,13 +97,11 @@ public class BattleManager : MonoBehaviour {
 
 	private bool movingIsOK = true;
 
-	private bool isMine;
-
 	private Dictionary<int,int> summonDic{
 
 		get{
 
-			return isMine ? battle.mSummonAction : battle.oSummonAction;
+			return battle.clientIsMine ? battle.mSummonAction : battle.oSummonAction;
 		}
 	}
 
@@ -111,7 +109,7 @@ public class BattleManager : MonoBehaviour {
 
 		get {
 
-			return isMine ? battle.mMoveAction : battle.oMoveAction;
+			return battle.clientIsMine ? battle.mMoveAction : battle.oMoveAction;
 		}
 	}
 
@@ -165,9 +163,7 @@ public class BattleManager : MonoBehaviour {
 		Connection.Instance.Send (_ms);
 	}
 
-	private void RefreshData(bool _isMine){
-
-		isMine = _isMine;
+	private void RefreshData(){
 
 		ClearMapUnits ();
 		
@@ -290,7 +286,7 @@ public class BattleManager : MonoBehaviour {
 				
 				unit.SetOffVisible(true);
 
-				if(battle.mapDic[index] == isMine){
+				if(battle.mapDic[index] == battle.clientIsMine){
 
 					unit.SetMainColor(Color.green);
 
@@ -328,7 +324,7 @@ public class BattleManager : MonoBehaviour {
 
 		cardDic.Clear ();
 
-		Dictionary<int,int> tmpCardDic = isMine ? battle.mHandCards : battle.oHandCards;
+		Dictionary<int,int> tmpCardDic = battle.clientIsMine ? battle.mHandCards : battle.oHandCards;
 
 		Dictionary<int,int>.Enumerator enumerator = tmpCardDic.GetEnumerator ();
 
@@ -477,7 +473,7 @@ public class BattleManager : MonoBehaviour {
 
 	public void MapUnitDown(MapUnit _mapUnit){
 
-		if (battle.mapDic[_mapUnit.index] == isMine && heroDic.ContainsKey (_mapUnit.index)) {
+		if (battle.mapDic[_mapUnit.index] == battle.clientIsMine && heroDic.ContainsKey (_mapUnit.index)) {
 
 			HeroCard heroCard = heroDic[_mapUnit.index];
 
@@ -491,7 +487,7 @@ public class BattleManager : MonoBehaviour {
 
 					if(moveDic.ContainsKey(movingHeroPos)){
 
-						battle.ClientRequestUnmove(isMine,movingHeroPos);
+						battle.ClientRequestUnmove(movingHeroPos);
 
 						ClearMoves();
 
@@ -506,7 +502,7 @@ public class BattleManager : MonoBehaviour {
 
 		if (movingHeroPos != -1) {
 
-			if((battle.mapDic[_mapUnit.index] == isMine && !battle.mapBelongDic.ContainsKey(_mapUnit.index)) || (battle.mapDic[_mapUnit.index] != isMine && battle.mapBelongDic.ContainsKey(_mapUnit.index))){
+			if((battle.mapDic[_mapUnit.index] == battle.clientIsMine && !battle.mapBelongDic.ContainsKey(_mapUnit.index)) || (battle.mapDic[_mapUnit.index] != battle.clientIsMine && battle.mapBelongDic.ContainsKey(_mapUnit.index))){
 
 				if(battle.heroMapDic.ContainsKey(_mapUnit.index)){
 
@@ -551,7 +547,7 @@ public class BattleManager : MonoBehaviour {
 
 				if(direction != -1){
 
-					battle.ClientRequestMove(isMine,movingHeroPos,direction);
+					battle.ClientRequestMove(movingHeroPos,direction);
 
 					ClearMoves();
 					
@@ -567,7 +563,7 @@ public class BattleManager : MonoBehaviour {
 			
 			if(moveDic.ContainsKey(movingHeroPos)){
 				
-				battle.ClientRequestUnmove(isMine,movingHeroPos);
+				battle.ClientRequestUnmove(movingHeroPos);
 				
 				ClearMoves();
 				
@@ -638,7 +634,7 @@ public class BattleManager : MonoBehaviour {
 
 		} else if(nowChooseCard != null) {
 
-			if (battle.mapDic [_mapUnit.index] == isMine && !battle.mapBelongDic.ContainsKey (_mapUnit.index) && nowChooseCard.sds.cost <= GetMoney ()) {
+			if (battle.mapDic [_mapUnit.index] == battle.clientIsMine && !battle.mapBelongDic.ContainsKey (_mapUnit.index) && nowChooseCard.sds.cost <= GetMoney ()) {
 				
 				SummonHero (nowChooseCard.cardUid, _mapUnit.index);
 			}
@@ -687,7 +683,7 @@ public class BattleManager : MonoBehaviour {
 
 	private void SummonHero(int _cardUid,int _pos){
 		
-		battle.ClientRequestSummon (isMine, _cardUid, _pos);
+		battle.ClientRequestSummon (_cardUid, _pos);
 
 		CreateMoneyTf ();
 
@@ -706,7 +702,7 @@ public class BattleManager : MonoBehaviour {
 
 	private void UnsummonHero(int _cardUid){
 
-		battle.ClientRequestUnsummon (isMine, _cardUid);
+		battle.ClientRequestUnsummon (_cardUid);
 		
 		CreateMoneyTf ();
 		
@@ -743,7 +739,7 @@ public class BattleManager : MonoBehaviour {
 
 	private void AddCardToMap(int _cardUid,int _pos){
 
-		int cardID = (isMine ? battle.mHandCards : battle.oHandCards) [_cardUid];
+		int cardID = (battle.clientIsMine ? battle.mHandCards : battle.oHandCards) [_cardUid];
 
 		GameObject go = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Hero"));
 		
@@ -777,9 +773,9 @@ public class BattleManager : MonoBehaviour {
 
 	private int GetMoney(){
 
-		int money = isMine ? battle.mMoney : battle.oMoney;
+		int money = battle.clientIsMine ? battle.mMoney : battle.oMoney;
 
-		Dictionary<int,int> cards = isMine ? battle.mHandCards : battle.oHandCards;
+		Dictionary<int,int> cards = battle.clientIsMine ? battle.mHandCards : battle.oHandCards;
 
 		Dictionary<int,int>.KeyCollection.Enumerator enumerator = summonDic.Keys.GetEnumerator ();
 
@@ -806,7 +802,7 @@ public class BattleManager : MonoBehaviour {
 
 		ClearNowChooseHero ();
 
-		battle.ClientRequestDoAction (isMine);
+		battle.ClientRequestDoAction ();
 
 		RefreshTouchable ();
 	}
@@ -822,7 +818,7 @@ public class BattleManager : MonoBehaviour {
 
 	private void RefreshTouchable(){
 
-		bool touchable = !(isMine ? battle.mOver : battle.oOver);
+		bool touchable = !(battle.clientIsMine ? battle.mOver : battle.oOver);
 
 		graphicRayCaster.enabled = touchable;
 		MapUnit.touchable = touchable;
