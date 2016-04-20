@@ -4,10 +4,14 @@ using HexWar;
 using System.IO;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using xy3d.tstd.lib.superTween;
+using System;
 
 public class BattleManager : MonoBehaviour {
 
 	private static readonly Color summonColor = new Color (0.2f, 0.8f, 0.8f);
+
+	private const float arrowZFix = -5;
 
 	private const float mapUnitWidth = 30;
 	private const float mapUnitScale = 50;
@@ -19,10 +23,19 @@ public class BattleManager : MonoBehaviour {
 	private GraphicRaycaster graphicRayCaster;
 
 	[SerializeField]
+	private RectTransform battleContainer;
+
+	[SerializeField]
 	private RectTransform cardContainer;
 
 	[SerializeField]
 	private RectTransform mapContainer;
+
+	[SerializeField]
+	private RectTransform heroContainer;
+
+	[SerializeField]
+	private RectTransform arrowContainer;
 
 	[SerializeField]
 	private Text moneyTf;
@@ -317,7 +330,7 @@ public class BattleManager : MonoBehaviour {
 			}
 		}
 		
-		mapContainer.localPosition = new Vector3 (-0.5f * (battle.mapData.mapWidth * mapUnitWidth * sqrt3 * 2) + mapUnitWidth * sqrt3,mapContainerYFix + 0.5f * (battle.mapData.mapHeight * mapUnitWidth * 3 + mapUnitWidth) - mapUnitWidth * 2, 0);
+		battleContainer.localPosition = new Vector3 (-0.5f * (battle.mapData.mapWidth * mapUnitWidth * sqrt3 * 2) + mapUnitWidth * sqrt3,mapContainerYFix + 0.5f * (battle.mapData.mapHeight * mapUnitWidth * 3 + mapUnitWidth) - mapUnitWidth * 2, 0);
 	}
 
 	private void CreateCards(){
@@ -399,7 +412,11 @@ public class BattleManager : MonoBehaviour {
 
 			Arrow arrow = go.GetComponent<Arrow>();
 
-			go.transform.SetParent(mapUnitDic[pos].transform,false);
+			go.transform.SetParent(arrowContainer,false);
+
+			go.transform.localPosition = new Vector3( mapUnitDic[pos].transform.localPosition.x, mapUnitDic[pos].transform.localPosition.y,arrowZFix);
+
+			go.transform.localScale = new Vector3(mapUnitScale,mapUnitScale,mapUnitScale);
 
 			go.transform.eulerAngles = new Vector3(0,0,60 - direction * 60);
 
@@ -759,14 +776,14 @@ public class BattleManager : MonoBehaviour {
 		MapUnit mapUnit = mapUnitDic [_pos];
 		
 		_heroCard.SetFrameVisible(false);
+
+		_heroCard.transform.SetParent (heroContainer, false);
+
+		_heroCard.transform.localPosition = mapUnit.transform.localPosition;
 		
-		_heroCard.transform.SetParent (mapUnit.transform, false);
+//		_heroCard.transform.localPosition = Vector3.zero;
 		
-		_heroCard.transform.localPosition = Vector3.zero;
-		
-		float scale = 1 / mapUnitScale * heroScale;
-		
-		_heroCard.transform.localScale = new Vector3 (scale, scale, scale);
+		_heroCard.transform.localScale = new Vector3 (heroScale, heroScale, heroScale);
 		
 		_heroCard.SetMouseEnable (false);
 	}
@@ -827,6 +844,251 @@ public class BattleManager : MonoBehaviour {
 
 	private void DoAction(BinaryReader _br){
 
-		int mSummonNum = _br.ReadInt32 ();
+		DoSummonMyHero (_br);
+
+//		battle.ClientDoSummonMyHero (_br);
+//
+//		battle.ClientDoSummonOppHero (_br);
+
+
+		 
+//		IEnumerator enumerator = battle.ClientDoAttack (_br);
+//
+//		while (enumerator.MoveNext()) {
+//
+//			Debug.Log(enumerator.Current);
+//		}
+//
+//		battle.ClientDoRecover (_br);
+	}
+
+	private void DoSummonMyHero(BinaryReader _br){
+
+		int summonNum = battle.ClientDoSummonMyHero (_br);
+
+		if (summonNum > 0) {
+
+			RefreshData ();
+
+			Action del = delegate() {
+
+				DoSummonOppHero (_br);
+			};
+
+			SuperTween.Instance.DelayCall (1, del);
+
+		} else {
+
+			DoSummonOppHero (_br);
+		}
+	}
+
+	private void DoSummonOppHero(BinaryReader _br){
+
+		int summonNum = battle.ClientDoSummonOppHero (_br);
+
+		if (summonNum > 0) {
+
+			RefreshData ();
+			
+			Action del = delegate() {
+				
+				DoMove (_br);
+			};
+			
+			SuperTween.Instance.DelayCall (1, del);
+
+		} else {
+
+			DoMove (_br);
+		}
+	}
+
+	private void DoMove(BinaryReader _br){
+
+		Dictionary<int,int> moveDic = battle.ClientDoMove (_br);
+
+		if (moveDic.Count > 0) {
+
+			ClearMoves ();
+
+			Dictionary<int,int>.Enumerator enumerator = moveDic.GetEnumerator ();
+
+			bool hasCallBack = false;
+
+			while (enumerator.MoveNext()) {
+
+				int oldPos = enumerator.Current.Key;
+
+				int newPos = enumerator.Current.Value;
+
+				HeroCard hero = heroDic [oldPos];
+
+				Action<float> delX = delegate(float obj) {
+
+					hero.transform.localPosition = new Vector3 (obj, hero.transform.localPosition.y, hero.transform.localPosition.z);
+				};
+
+				Action<float> delY = delegate(float obj) {
+					
+					hero.transform.localPosition = new Vector3 (hero.transform.localPosition.x, obj, hero.transform.localPosition.z);
+				};
+
+				if(!hasCallBack){
+
+					hasCallBack = true;
+					
+					Action over = delegate() {
+
+						RefreshData();
+						
+						DoAttack(_br);
+					};
+
+					SuperTween.Instance.To (hero.transform.localPosition.x, mapUnitDic [newPos].transform.localPosition.x, 1, delX, over);
+					
+				}else{
+
+					SuperTween.Instance.To (hero.transform.localPosition.x, mapUnitDic [newPos].transform.localPosition.x, 1, delX, null);
+				}
+
+				SuperTween.Instance.To (hero.transform.localPosition.y, mapUnitDic [newPos].transform.localPosition.y, 1, delY, null);
+			}
+
+		} else {
+
+			DoAttack(_br);
+		}
+	}
+
+	private void DoAttack(BinaryReader _br){
+
+		IEnumerator enumerator = battle.ClientDoAttack (_br);
+
+		DoAttackReal (enumerator, _br);
+	}
+
+	private void DoAttackReal(IEnumerator _enumerator,BinaryReader _br){
+
+		if (_enumerator.MoveNext ()) {
+
+			if(_enumerator.Current is KeyValuePair<int,int>){
+
+				DoRush(_enumerator,_br);
+
+			}else{
+
+				DoDamage(_enumerator,_br);
+			}
+
+		} else {
+
+			battle.ClientDoRecover (_br);
+
+			_br.Close();
+		}
+	}
+
+	private void DoRush(IEnumerator _enumerator,BinaryReader _br){
+
+		KeyValuePair<int,int> pair = (KeyValuePair<int,int>)_enumerator.Current;
+
+		GameObject go = GameObject.Instantiate<GameObject> (Resources.Load<GameObject> ("Attack"));
+
+		go.transform.SetParent (arrowContainer, false);
+
+		go.transform.localPosition = new Vector3(mapUnitDic [pair.Key].transform.localPosition.x,mapUnitDic [pair.Key].transform.localPosition.y,arrowZFix);
+
+		go.transform.localScale = new Vector3 (mapUnitScale, mapUnitScale, mapUnitScale);
+
+		Action over = delegate() {
+
+			GameObject.Destroy(go);
+
+			heroDic[pair.Value].SetPower(battle.heroMapDic[pair.Value].nowPower);
+
+			DoAttackReal(_enumerator,_br);
+		};
+
+		Action<float> delX = delegate(float obj) {
+
+			go.transform.localPosition = new Vector3(obj,go.transform.localPosition.y,go.transform.localPosition.z);
+		};
+
+		Action<float> delY = delegate(float obj) {
+			
+			go.transform.localPosition = new Vector3(go.transform.localPosition.x,obj,go.transform.localPosition.z);
+		};
+
+		Vector3 targetPos = mapUnitDic [pair.Value].transform.localPosition;
+
+		go.transform.eulerAngles = new Vector3(0,0,Mathf.Atan2(targetPos.y - go.transform.localPosition.y,targetPos.x - go.transform.localPosition.x) * 180 / Mathf.PI);
+
+		SuperTween.Instance.To (go.transform.localPosition.x, targetPos.x, 1, delX, over);
+
+		SuperTween.Instance.To (go.transform.localPosition.y, targetPos.y, 1, delY, null);
+	}
+
+	private void DoDamage(IEnumerator _enumerator,BinaryReader _br){
+		
+		KeyValuePair<int, KeyValuePair<int, int>[]> pair = (KeyValuePair<int, KeyValuePair<int, int>[]>)_enumerator.Current;
+
+		KeyValuePair<int,int>[] targets = pair.Value;
+
+		for (int i = 0; i < targets.Length; i++) {
+
+			GameObject go = GameObject.Instantiate<GameObject> (Resources.Load<GameObject> ("Attack"));
+			
+			go.transform.SetParent (arrowContainer, false);
+			
+			go.transform.localPosition = new Vector3(mapUnitDic [pair.Key].transform.localPosition.x,mapUnitDic [pair.Key].transform.localPosition.y,arrowZFix);
+			
+			go.transform.localScale = new Vector3 (mapUnitScale, mapUnitScale, mapUnitScale);
+
+			Action<float> delX = delegate(float obj) {
+				
+				go.transform.localPosition = new Vector3 (obj, go.transform.localPosition.y, go.transform.localPosition.z);
+			};
+			
+			Action<float> delY = delegate(float obj) {
+				
+				go.transform.localPosition = new Vector3 (go.transform.localPosition.x, obj, go.transform.localPosition.z);
+			};
+			
+			Vector3 targetPos = mapUnitDic [targets[i].Key].transform.localPosition;
+
+			go.transform.eulerAngles = new Vector3(0,0,Mathf.Atan2(targetPos.y - go.transform.localPosition.y,targetPos.x - go.transform.localPosition.x) * 180 / Mathf.PI);
+
+			int heroPos = targets[i].Key;
+
+			Action over;
+
+			if(i == 0){
+			
+				over = delegate() {
+					
+					GameObject.Destroy (go);
+					
+					heroDic [heroPos].SetHp (battle.heroMapDic [heroPos].nowHp);
+
+					RefreshData();
+					
+					DoAttackReal (_enumerator, _br);
+				};
+
+			}else{
+
+				over = delegate() {
+					
+					GameObject.Destroy (go);
+					
+					heroDic [heroPos].SetHp (battle.heroMapDic [heroPos].nowHp);
+				};
+			}
+
+			SuperTween.Instance.To (go.transform.localPosition.x, targetPos.x, 1, delX, over);
+
+			SuperTween.Instance.To (go.transform.localPosition.y, targetPos.y, 1, delY, null);
+		}
 	}
 }

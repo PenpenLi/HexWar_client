@@ -54,6 +54,16 @@ public class HeroCard : MonoBehaviour,IPointerClickHandler {
 		power.text = _power.ToString ();
 	}
 
+	public void SetHp(int _hp){
+
+		hp.text = _hp.ToString ();
+	}
+
+	public void SetPower(int _power){
+
+		power.text = _power.ToString ();
+	}
+
 	public void SetMouseEnable(bool _b){
 
 		body.raycastTarget = _b;
