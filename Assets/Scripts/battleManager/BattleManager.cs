@@ -178,6 +178,8 @@ public class BattleManager : MonoBehaviour {
 
 	private void RefreshData(){
 
+		heroDetail.Hide();
+
 		ClearMapUnits ();
 		
 		ClearCards ();
