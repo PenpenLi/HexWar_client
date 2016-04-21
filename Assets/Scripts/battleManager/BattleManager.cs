@@ -1086,6 +1086,8 @@ public class BattleManager : MonoBehaviour {
 
 			int heroPos = targets[i].Key;
 
+			int damage = targets[i].Value;
+
 			Action over;
 
 			if(i == 0){
@@ -1101,9 +1103,19 @@ public class BattleManager : MonoBehaviour {
 					
 					heroDic [heroPos].SetHp (battle.heroMapDic [heroPos].nowHp);
 
+					GameObject damageGo = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("DamageNum"));
+
+					damageGo.transform.SetParent(arrowContainer,false);
+
+					damageGo.transform.localPosition = heroDic [heroPos].transform.localPosition;
+
+					DamageNum damageNum = damageGo.GetComponent<DamageNum>();
+
+					damageNum.Init(-damage,doNext);
+
 					RefreshData();
 					
-					SuperTween.Instance.DelayCall(1,doNext);
+//					SuperTween.Instance.DelayCall(1,doNext);
 				};
 
 			}else{
@@ -1113,6 +1125,16 @@ public class BattleManager : MonoBehaviour {
 					GameObject.Destroy (go);
 					
 					heroDic [heroPos].SetHp (battle.heroMapDic [heroPos].nowHp);
+
+					GameObject damageGo = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("DamageNum"));
+
+					damageGo.transform.SetParent(arrowContainer,false);
+					
+					damageGo.transform.localPosition = heroDic [heroPos].transform.localPosition;
+					
+					DamageNum damageNum = damageGo.GetComponent<DamageNum>();
+					
+					damageNum.Init(-damage,null);
 				};
 			}
 
