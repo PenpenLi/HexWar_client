@@ -58,9 +58,11 @@ public class RoundNum : MonoBehaviour {
 
 			gameObject.SetActive (false);
 
-			callBack();
+			Action tmpCallBack = callBack;
 
 			callBack = null;
+
+			tmpCallBack();
 
 		} else {
 
