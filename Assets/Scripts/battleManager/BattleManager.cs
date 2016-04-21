@@ -1009,6 +1009,8 @@ public class BattleManager : MonoBehaviour {
 
 		GameObject go = GameObject.Instantiate<GameObject> (Resources.Load<GameObject> ("Attack"));
 
+		go.GetComponent<SpriteRenderer> ().color = Color.magenta;
+
 		go.transform.SetParent (arrowContainer, false);
 
 		go.transform.localPosition = new Vector3(mapUnitDic [pair.Key].transform.localPosition.x,mapUnitDic [pair.Key].transform.localPosition.y,arrowZFix);
@@ -1057,6 +1059,8 @@ public class BattleManager : MonoBehaviour {
 		for (int i = 0; i < targets.Length; i++) {
 
 			GameObject go = GameObject.Instantiate<GameObject> (Resources.Load<GameObject> ("Attack"));
+
+			go.GetComponent<SpriteRenderer> ().color = Color.black;
 			
 			go.transform.SetParent (arrowContainer, false);
 			
