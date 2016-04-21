@@ -992,6 +992,8 @@ public class BattleManager : MonoBehaviour {
 					DoAttackReal(_enumerator,_br);
 				};
 
+				RefreshData();
+
 				roundNum.Move("Round " + _enumerator.Current,del);
 			}
 

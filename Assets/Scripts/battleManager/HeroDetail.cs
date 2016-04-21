@@ -16,6 +16,9 @@ public class HeroDetail : MonoBehaviour {
 	[SerializeField]
 	private Text damage;
 
+	[SerializeField]
+	private Text attackTimes;
+
 	public void Init(HeroCard _hero){
 
 		cost.text = _hero.sds.cost.ToString ();
@@ -25,6 +28,8 @@ public class HeroDetail : MonoBehaviour {
 		power.text = _hero.sds.power.ToString ();
 
 		damage.text = _hero.sds.damage.ToString ();
+
+		attackTimes.text = _hero.sds.attackTimes.ToString ();
 
 		gameObject.SetActive (true);
 	}
