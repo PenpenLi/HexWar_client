@@ -46,6 +46,9 @@ public class BattleManager : MonoBehaviour {
 	[SerializeField]
 	private HeroDetail heroDetail;
 
+	[SerializeField]
+	private RoundNum roundNum;
+
 	private Battle battle;
 
 	private Dictionary<int,MapUnit> mapUnitDic = new Dictionary<int, MapUnit> ();
@@ -978,9 +981,18 @@ public class BattleManager : MonoBehaviour {
 
 				DoRush(_enumerator,_br);
 
-			}else{
+			}else if(_enumerator.Current is KeyValuePair<int, KeyValuePair<int, int>[]>){
 
 				DoDamage(_enumerator,_br);
+
+			}else if(_enumerator.Current is int){
+
+				Action del = delegate() {
+
+					DoAttackReal(_enumerator,_br);
+				};
+
+				roundNum.Move("Round " + _enumerator.Current,del);
 			}
 
 		} else {
@@ -1003,13 +1015,18 @@ public class BattleManager : MonoBehaviour {
 
 		go.transform.localScale = new Vector3 (mapUnitScale, mapUnitScale, mapUnitScale);
 
+		Action doNext = delegate() {
+
+			DoAttackReal(_enumerator,_br);
+		};
+
 		Action over = delegate() {
 
 			GameObject.Destroy(go);
 
 			heroDic[pair.Value].SetPower(battle.heroMapDic[pair.Value].nowPower);
 
-			DoAttackReal(_enumerator,_br);
+			SuperTween.Instance.DelayCall(1,doNext);
 		};
 
 		Action<float> delX = delegate(float obj) {
@@ -1066,6 +1083,11 @@ public class BattleManager : MonoBehaviour {
 			Action over;
 
 			if(i == 0){
+
+				Action doNext = delegate() {
+
+					DoAttackReal (_enumerator, _br);
+				};
 			
 				over = delegate() {
 					
@@ -1075,7 +1097,7 @@ public class BattleManager : MonoBehaviour {
 
 					RefreshData();
 					
-					DoAttackReal (_enumerator, _br);
+					SuperTween.Instance.DelayCall(1,doNext);
 				};
 
 			}else{
