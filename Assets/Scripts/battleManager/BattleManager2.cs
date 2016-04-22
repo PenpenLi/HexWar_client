@@ -591,38 +591,26 @@ public class BattleManager2 : MonoBehaviour {
 		
 		battle.ClientRequestSummon (_cardUid, _pos);
 		
-		CreateMoneyTf ();
-		
 		ClearCards ();
 		
 		CreateCards ();
 		
-		ClearSummonHeros ();
-		
 		CreateSummonHeros ();
-		
-		ClearMoves ();
-		
-		CreateMoves ();
+
+		CreateMoneyTf ();
 	}
 	
 	private void UnsummonHero(int _cardUid){
 		
 		battle.ClientRequestUndoAction ();
 		
-		CreateMoneyTf ();
-		
 		ClearCards ();
 		
 		CreateCards ();
 		
 		ClearSummonHeros ();
 		
-		CreateSummonHeros ();
-		
-		ClearMoves ();
-		
-		CreateMoves ();
+		CreateMoneyTf ();
 	}
 	
 	private void AddHeroToMap(Hero2 _hero){
@@ -679,8 +667,6 @@ public class BattleManager2 : MonoBehaviour {
 		
 		int money = battle.clientIsMine ? battle.mMoney : battle.oMoney;
 		
-		Dictionary<int,int> cards = battle.clientIsMine ? battle.mHandCards : battle.oHandCards;
-
 		if (summonHero != null) {
 
 			money -= summonHero.sds.GetCost();
