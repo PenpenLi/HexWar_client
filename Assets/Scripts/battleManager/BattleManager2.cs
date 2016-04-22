@@ -622,6 +622,10 @@ public class BattleManager2 : MonoBehaviour {
 		if (_hero.isMoved) {
 			
 			hero.body.color = Color.gray;
+
+		}else if (_hero.isSummon) {
+
+			hero.body.color = summonColor;
 		}
 		
 		heroDic.Add (_hero.pos, hero);
