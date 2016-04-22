@@ -643,7 +643,7 @@ public class BattleManager2 : MonoBehaviour {
 		
 		summonHero = go.GetComponent<HeroCard>();
 		
-		summonHero.body.color = summonColor;
+		summonHero.body.color = Color.magenta;
 		
 		summonHero.Init(_cardUid,cardID);
 		
