@@ -146,7 +146,7 @@ public class BattleManager2 : MonoBehaviour {
 			newDic.Add(pair.Key, pair.Value);
 		}
 		
-		Battle.Init(newDic,Map.mapDataDic);
+		Battle2.Init(newDic,Map.mapDataDic);
 		
 		battle = new Battle2 ();
 		
