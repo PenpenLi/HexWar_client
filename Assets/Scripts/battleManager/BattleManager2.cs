@@ -765,7 +765,7 @@ public class BattleManager2 : MonoBehaviour {
 			SetIsTweening (false);
 		};
 
-		SuperTween.Instance.To (5, hero.transform.localScale.x, 1, del, over);
+		SuperTween.Instance.To (5, hero.transform.localScale.x, 0.5f, del, over);
 
 		hero.transform.localScale = new Vector3 (5, 5, 5);
 	}
