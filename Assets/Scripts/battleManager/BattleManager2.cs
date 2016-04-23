@@ -60,6 +60,10 @@ public class BattleManager2 : MonoBehaviour {
 	private HeroCard summonHero;
 
 	private Arrow arrow;
+
+	private bool isTweening = false;
+
+	private List<byte[]> packagePool = new List<byte[]>();
 	
 //	private Dictionary<int,HeroCard> summonHeroDic = new Dictionary<int, HeroCard>();
 //	
@@ -150,19 +154,33 @@ public class BattleManager2 : MonoBehaviour {
 		
 		battle = new Battle2 ();
 		
-		battle.ClientSetCallBack (SendData, RefreshData, DoSummon, DoMove, DoAction);
+		battle.ClientSetCallBack (SendData, ClientRefreshData, DoSummon, DoMove, DoAction);
 		
 		Connection.Instance.Init ("127.0.0.1", 1983, ReceiveData);
 	}
 	
 	private void ReceiveData(byte[] _bytes){
+
+		if (isTweening) {
+
+			packagePool.Add (_bytes);
+
+		} else {
 		
-		battle.ClientGetPackage (_bytes);
+			battle.ClientGetPackage (_bytes);
+		}
 	}
 	
 	private void SendData(MemoryStream _ms){
 		
 		Connection.Instance.Send (_ms);
+	}
+
+	private void ClientRefreshData(){
+
+		RefreshData ();
+
+		SetIsTweening (false);
 	}
 	
 	private void RefreshData(){
@@ -698,22 +716,61 @@ public class BattleManager2 : MonoBehaviour {
 			battle.ClientRequestRefreshData();
 		}
 	}
+
+	private void SetIsTweening(bool _b){
+
+		isTweening = _b;
+
+		RefreshTouchable ();
+
+		if (!_b) {
+
+			if(packagePool.Count > 0){
+
+				byte[] package = packagePool[0];
+
+				packagePool.RemoveAt(0);
+
+				battle.ClientGetPackage(package);
+			}
+		}
+	}
 	
 	private void RefreshTouchable(){
 		
-		bool touchable = battle.clientIsMine == battle.isMineAction;
+		bool tmpTouchable = battle.clientIsMine == battle.isMineAction && !isTweening;
 		
-		graphicRayCaster.enabled = touchable;
-		MapUnit.touchable = touchable;
-		actionBt.SetActive (touchable);
+		graphicRayCaster.enabled = tmpTouchable;
+		MapUnit.touchable = tmpTouchable;
+		actionBt.SetActive (tmpTouchable);
 	}
 
 	private void DoSummon(int _cardID,int _pos){
 
+		SetIsTweening (true);
+
 		RefreshData ();
+
+		HeroCard hero = heroDic [_pos];
+
+		Action<float> del = delegate(float obj) {
+
+			hero.transform.localScale = new Vector3 (obj, obj, obj);
+		};
+
+		Action over = delegate() {
+
+			SetIsTweening (false);
+		};
+
+		SuperTween.Instance.To (5, hero.transform.localScale.x, 1, del, over);
+
+		hero.transform.localScale = new Vector3 (5, 5, 5);
 	}
 
 	private void DoMove(int _pos,int _direction){
+
+		SetIsTweening (true);
 
 		ClearMoves ();
 
@@ -732,6 +789,8 @@ public class BattleManager2 : MonoBehaviour {
 		};
 
 		Action over = delegate() {
+
+			SetIsTweening (false);
 			
 			RefreshData();
 		};
@@ -742,7 +801,9 @@ public class BattleManager2 : MonoBehaviour {
 	}
 	
 	private void DoAction(BinaryReader _br){
-		
+
+		SetIsTweening (true);
+
 		DoAttack(_br);
 	}
 
@@ -782,6 +843,8 @@ public class BattleManager2 : MonoBehaviour {
 			battle.ClientDoRecover (_br);
 			
 			_br.Close();
+
+			SetIsTweening (false);
 		}
 	}
 	
