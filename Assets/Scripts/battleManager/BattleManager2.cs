@@ -73,34 +73,30 @@ public class BattleManager2 : MonoBehaviour {
 	private bool isTweening = false;
 
 	private List<byte[]> packagePool = new List<byte[]>();
-	
-//	private Dictionary<int,HeroCard> summonHeroDic = new Dictionary<int, HeroCard>();
+
+//	private HeroCard m_nowChooseCard;
 //	
-//	private Dictionary<int,Arrow> arrowDic = new Dictionary<int, Arrow>();
-	
-	private HeroCard m_nowChooseCard;
-	
-	private HeroCard nowChooseCard{
-		
-		get{
-			
-			return m_nowChooseCard;
-		}
-		
-		set{
-			
-			if(value == null){
-				
-				heroDetail.Hide();
-				
-			}else{
-				
-				heroDetail.Init(value);
-			}
-			
-			m_nowChooseCard = value;
-		}
-	}
+//	private HeroCard nowChooseCard{
+//		
+//		get{
+//			
+//			return m_nowChooseCard;
+//		}
+//		
+//		set{
+//			
+//			if(value == null){
+//				
+//				heroDetail.Hide();
+//				
+//			}else{
+//				
+//				heroDetail.Init(value);
+//			}
+//			
+//			m_nowChooseCard = value;
+//		}
+//	}
 	
 	private HeroCard m_nowChooseHero;
 	
@@ -524,15 +520,15 @@ public class BattleManager2 : MonoBehaviour {
 	public void MapUnitUpAsButton(MapUnit _mapUnit){
 
 		if (battle.clientActionType == ActionType.SUMMON && battle.clientActionData1 == _mapUnit.index) {
-
+			
 			if (nowChooseHero == null) {
-
+				
 				nowChooseHero = summonHero;
-
+				
 				nowChooseHero.SetFrameVisible (true);
-
+				
 			} else {
-
+				
 				if (nowChooseHero == summonHero) {
 					
 					nowChooseHero = null;
@@ -548,13 +544,13 @@ public class BattleManager2 : MonoBehaviour {
 					nowChooseHero.SetFrameVisible (true);
 				}
 			}
-
-		} else if (battle.heroMapDic.ContainsKey (_mapUnit.index)) {
+			
+		}else if (battle.heroMapDic.ContainsKey (_mapUnit.index)) {
 
 			HeroCard nowHero = heroDic [_mapUnit.index];
-			
+
 			if (nowChooseHero == null) {
-				
+					
 				nowChooseHero = nowHero;
 				
 				nowChooseHero.SetFrameVisible (true);
@@ -571,44 +567,37 @@ public class BattleManager2 : MonoBehaviour {
 				}
 			}
 
-		} else if(nowChooseCard != null) {
-			
-			if (battle.mapDic [_mapUnit.index] == battle.clientIsMine && nowChooseCard.sds.cost <= GetMoney ()) {
-				
-				SummonHero (nowChooseCard.cardUid, _mapUnit.index);
-			}
+		} else if(summonHero == null && nowChooseHero != null && nowChooseHero.cardUid != -1 && battle.mapDic [_mapUnit.index] == battle.clientIsMine && nowChooseHero.sds.cost <= GetMoney ()) {
+
+			SummonHero (nowChooseHero.cardUid, _mapUnit.index);
 			
 		} else {
 			
 			ClearNowChooseHero();
 		}
-		
-		ClearNowChooseCard ();
 	}
 	
 	public void HeroClick(HeroCard _hero){
 		
 		ClearNowChooseHero();
 		
-		if (nowChooseCard != _hero) {
+		if (nowChooseHero != _hero) {
 			
-			ClearNowChooseCard();
+			nowChooseHero = _hero;
 			
-			nowChooseCard = _hero;
-			
-			nowChooseCard.SetFrameVisible(true);
+			nowChooseHero.SetFrameVisible(true);
 		}
 	}
 	
-	private void ClearNowChooseCard(){
-		
-		if (nowChooseCard != null) {
-			
-			nowChooseCard.SetFrameVisible(false);
-			
-			nowChooseCard = null;
-		}
-	}
+//	private void ClearNowChooseCard(){
+//		
+//		if (nowChooseCard != null) {
+//			
+//			nowChooseCard.SetFrameVisible(false);
+//			
+//			nowChooseCard = null;
+//		}
+//	}
 	
 	private void ClearNowChooseHero(){
 		
@@ -714,8 +703,6 @@ public class BattleManager2 : MonoBehaviour {
 	
 	public void ActionBtClick(){
 
-		ClearNowChooseCard ();
-		
 		ClearNowChooseHero ();
 		
 		battle.ClientRequestDoAction ();
@@ -818,6 +805,8 @@ public class BattleManager2 : MonoBehaviour {
 	private void DoAction(BinaryReader _br){
 
 		SetIsTweening (true);
+
+		isSkipGo.SetActive (false);
 
 		DoAttack(_br);
 	}

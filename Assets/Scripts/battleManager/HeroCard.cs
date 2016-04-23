@@ -24,6 +24,7 @@ public class HeroCard : MonoBehaviour,IPointerClickHandler {
 	private Text hp;
 
 	public int cardUid;
+
 	public HeroSDS sds;
 
 	public void Init(int _cardUid,int _id){
@@ -42,6 +43,8 @@ public class HeroCard : MonoBehaviour,IPointerClickHandler {
 	}
 
 	public void Init(int _id,int _hp,int _power){
+
+		cardUid = -1;
 
 		sds = StaticData.GetData<HeroSDS> (_id);
 		
