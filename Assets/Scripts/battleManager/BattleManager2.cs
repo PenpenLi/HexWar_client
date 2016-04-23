@@ -38,7 +38,16 @@ public class BattleManager2 : MonoBehaviour {
 	private RectTransform arrowContainer;
 	
 	[SerializeField]
-	private Text moneyTf;
+	private Text myMoneyTf;
+
+	[SerializeField]
+	private Text oppMoneyTf;
+
+	[SerializeField]
+	private Text oppCardNumTf;
+
+	[SerializeField]
+	private GameObject isSkipGo;
 	
 	[SerializeField]
 	private GameObject actionBt;
@@ -382,7 +391,13 @@ public class BattleManager2 : MonoBehaviour {
 	
 	private void CreateMoneyTf(){
 		
-		moneyTf.text = GetMoney().ToString ();
+		myMoneyTf.text = GetMoney().ToString ();
+
+		oppMoneyTf.text = (battle.clientIsMine ? battle.oMoney : battle.mMoney).ToString();
+
+		oppCardNumTf.text = battle.clientOppHandCardsNum.ToString ();
+
+		isSkipGo.SetActive (battle.isSkip);
 	}
 	
 	private void CreateMoves(){
@@ -790,9 +805,9 @@ public class BattleManager2 : MonoBehaviour {
 
 		Action over = delegate() {
 
-			SetIsTweening (false);
-			
 			RefreshData();
+			
+			SetIsTweening (false);
 		};
 		
 		SuperTween.Instance.To (hero.transform.localPosition.x, mapUnitDic [newPos].transform.localPosition.x, 1, delX, over);
