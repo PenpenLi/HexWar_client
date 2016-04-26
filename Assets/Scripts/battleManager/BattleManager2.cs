@@ -806,8 +806,6 @@ public class BattleManager2 : MonoBehaviour {
 
 		SetIsTweening (true);
 
-		isSkipGo.SetActive (false);
-
 		DoAttack(_br);
 	}
 
