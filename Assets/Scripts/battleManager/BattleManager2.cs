@@ -428,7 +428,7 @@ public class BattleManager2 : MonoBehaviour {
 				
 				Hero2 hero = battle.heroMapDic[_mapUnit.index];
 				
-				if(!hero.isMoved && !hero.isSummon){
+				if(!hero.isSummon && hero.nowPower > 0){
 
 					if(battle.clientActionType == ActionType.MOVE && battle.clientActionData0 == hero.pos){
 
@@ -641,11 +641,7 @@ public class BattleManager2 : MonoBehaviour {
 		
 		HeroCard hero = go.GetComponent<HeroCard>();
 		
-		if (_hero.isMoved) {
-			
-			hero.body.color = Color.gray;
-
-		}else if (_hero.isSummon) {
+		if (_hero.isSummon) {
 
 			hero.body.color = summonColor;
 		}
