@@ -146,16 +146,27 @@ public class BattleManager2 : MonoBehaviour {
 		
 		StaticData.Load<HeroSDS>("hero");
 		
-		Dictionary<int, HeroSDS> dic = StaticData.GetDic<HeroSDS>();
+		Dictionary<int, HeroSDS> heroDic = StaticData.GetDic<HeroSDS>();
 		
-		Dictionary<int, IHeroSDS> newDic = new Dictionary<int, IHeroSDS>();
+		Dictionary<int, IHeroSDS> newHeroDic = new Dictionary<int, IHeroSDS>();
 		
-		foreach(KeyValuePair<int,HeroSDS> pair in dic)
+		foreach(KeyValuePair<int,HeroSDS> pair in heroDic)
 		{
-			newDic.Add(pair.Key, pair.Value);
+			newHeroDic.Add(pair.Key, pair.Value);
+		}
+
+		StaticData.Load<SkillSDS> ("skill");
+
+		Dictionary<int, SkillSDS> skillDic = StaticData.GetDic<SkillSDS>();
+		
+		Dictionary<int, ISkillSDS> newSkillDic = new Dictionary<int, ISkillSDS>();
+		
+		foreach(KeyValuePair<int,SkillSDS> pair in skillDic)
+		{
+			newSkillDic.Add(pair.Key, pair.Value);
 		}
 		
-		Battle2.Init(newDic,Map.mapDataDic);
+		Battle2.Init(newHeroDic,Map.mapDataDic,newSkillDic);
 		
 		battle = new Battle2 ();
 		
