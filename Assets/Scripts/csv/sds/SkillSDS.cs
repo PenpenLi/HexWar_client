@@ -2,6 +2,8 @@
 {
 	public int eventName;
 	public int addType;
+	public int conditionType;
+	public int conditionData;
 	public int targetType;
 	public int targetNum;
 	public int effectType;
@@ -14,6 +16,14 @@
 	public SkillAddType GetAddType()
 	{
 		return (SkillAddType)addType;
+	}
+	public SkillConditionType GetConditionType()
+	{
+		return (SkillConditionType)conditionType;
+	}
+	public int GetConditionData()
+	{
+		return conditionData;
 	}
 	public SkillTargetType GetTargetType()
 	{
