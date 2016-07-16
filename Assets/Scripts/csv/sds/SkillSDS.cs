@@ -1,7 +1,7 @@
 ﻿public class SkillSDS : CsvBase, ISkillSDS
 {
 	public int eventName;
-	public int addType;
+	public int trigger;
 	public int conditionType;
 	public int conditionData;
 	public int targetType;
@@ -13,9 +13,9 @@
 	{
 		return (SkillEventName)eventName;
 	}
-	public SkillAddType GetAddType()
+	public SkillTrigger GetTrigger()
 	{
-		return (SkillAddType)addType;
+		return (SkillTrigger)trigger;
 	}
 	public SkillConditionType GetConditionType()
 	{
