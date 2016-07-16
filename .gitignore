@@ -20,7 +20,7 @@ DerivedData
 # Unity generated #
 # =============== #
 Temp/
-ProjectSettings/
+#ProjectSettings/
 Obj/
 UnityGenerated/
 Library/
